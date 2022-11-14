@@ -1,0 +1,5 @@
+You're going to do this one album at a time.
+Start by putting all the music files into a folder called "input" in the same folder as this .exe, along with an image called "cover.png" or "cover.jpg" (as appropriate)
+Then run the .exe -- it'll do a long bit of processing, then eventually open a link to Twitter: here sign in with the account that's going to HOST THE MUSIC, not the account that's going to act as the bot
+Give it some time to cook, and it'll eventually spit out a CBDQ source
+Log in to CBDQ with the BOT ACCOUNT and paste in the source, set it to post every hour, hit save, you're golden
