@@ -26,17 +26,20 @@ def upload_files(session: OAuth1Session):
             "https://upload.twitter.com/1.1/media/upload.json", {
                 "command": "INIT",
                 "total_bytes": size,
-                "media_type": "video/mp4"
+                "media_type": "video/mp4",
+                "media_category": "tweet_video"
             }
         )
         init_json = init.json()
-        print(init_json)
         append = session.post(
-            "https://upload.twitter.com/1.1/media/upload.json", files={
+            "https://upload.twitter.com/1.1/media/upload.json",
+            data={
                 "command": "APPEND",
                 "media_id": init_json["media_id"],
-                "media": f,
                 "segment_index": 0
+            },
+            files={
+                "media": f.read()
             }
         )
         finalize = session.post(
@@ -56,7 +59,7 @@ def upload_files(session: OAuth1Session):
                 }
             ).json()
 
-        ids.append(init_json["media_id"])
+        ids.append((".".join(filename.split("-process")[0].split(".")[:-1]), init_json["media_id"]))
     
     return ids
 
@@ -92,15 +95,23 @@ def home(request: Request):
 
     tweets = []
 
-    for media_id in media_ids:
-        tweets.append(twitter.post("https://api.twitter.com/1.1/statuses/update.json", {
-            "status": "check this shit out",
+    for name,media_id in media_ids:
+        tweets.append((name, twitter.post("https://api.twitter.com/1.1/statuses/update.json", {
+            "status": name[:140],
             "media_ids": media_id
-        }).json())
+        }).json()))
 
+    # print(tweets)
     #TODO: take the tweet ids after posting and fold into a cheap bots done quick source
+    media_links = [(name, tweet['entities']['media'][0]['expanded_url']) for name,tweet in filter(lambda x: x[1].get("entities", None), tweets)]
+
+    print("FAILED TO PROCESS:", [name for name,tweet in filter(lambda x: "entities" not in x[1], tweets)])
     
-    return json.dumps(tweets)
+    output = {
+        "origin": [" ".join(c) for c in media_links] 
+    }
+
+    return output
 
 def start_server():
     twitter = OAuth1Session(client_key=api_key, client_secret=api_secret)

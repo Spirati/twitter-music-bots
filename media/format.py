@@ -2,12 +2,14 @@ from os import listdir,mkdir
 from shutil import rmtree
 import subprocess
 
-generate_ffmpeg_string = lambda filename,cover: f'ffmpeg -nostdin -y -loglevel error -loop 1 -i "input/{cover}" -i "input/{filename}" -filter:v "fps=30,scale=w=480:h=480" -tune stillimage -c:a aac -c:v libx264 -b:a 192k -pix_fmt yuv420p -t 140 -shortest "out/{filename}-process.mp4"'
+generate_ffmpeg_string = lambda filename,cover,album: f'ffmpeg -nostdin -y -loglevel error -loop 1 -i "input/{cover}" -i "input/{filename}" -filter:v "fps=30,scale=w=480:h=480" -tune stillimage -c:a aac -c:v libx264 -b:a 192k -pix_fmt yuv420p -t 140 -shortest "out/{album} - {filename}-process.mp4"'
 
 def chunk(l, size):
     return [l[size*i:size*(i+1)] for i in range(len(l)//size+1)]
 
 def process_files():
+    album = input("Please provide an album label to be added to every song in the input (e.g. Octopath Traveler): ")
+
     files = listdir("./input")
     cover = None
     songs = []
@@ -24,8 +26,9 @@ def process_files():
         print("Removed previous files")
     
     print("Processing all songs. THIS WILL TAKE SOME TIME.")
-    for batch in chunk(songs, 3):
-        procs = [subprocess.Popen(generate_ffmpeg_string(song, cover), shell=True) for song in batch]
-        for p in procs:
-            print(p.wait())
+    for batch in chunk(songs, 4):
+        procs = [(song,subprocess.Popen(generate_ffmpeg_string(song, cover,album), shell=True)) for song in batch]
+        for s,p in procs:
+            p.wait()
+            print(s)
     print("Done processing. Starting helper server.")
