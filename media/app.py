@@ -8,10 +8,13 @@ import json
 from time import sleep
 
 from os import listdir
-from os.path import getsize
+from os.path import getsize, abspath, join, dirname
+import sys
+
+ROOT_DIR = dirname(sys.argv[0])
 
 def upload_files(session: OAuth1Session):
-    filenames = listdir("out")
+    filenames = listdir(join(ROOT_DIR, "out"))
     if len(filenames) > 300:
         print("Too many files!")
         return []
@@ -19,29 +22,29 @@ def upload_files(session: OAuth1Session):
     ids = []
     
     for filename in filenames:
-        f = open(f"out/{filename}", "rb")
-        size = getsize(f"out/{filename}")
-        
-        init = session.post(
-            "https://upload.twitter.com/1.1/media/upload.json", {
-                "command": "INIT",
-                "total_bytes": size,
-                "media_type": "video/mp4",
-                "media_category": "tweet_video"
-            }
-        )
-        init_json = init.json()
-        append = session.post(
-            "https://upload.twitter.com/1.1/media/upload.json",
-            data={
-                "command": "APPEND",
-                "media_id": init_json["media_id"],
-                "segment_index": 0
-            },
-            files={
-                "media": f.read()
-            }
-        )
+        size = getsize(join(ROOT_DIR, "out", filename))
+        with open(join(ROOT_DIR, 'out', filename), "rb") as f:
+            
+            init = session.post(
+                "https://upload.twitter.com/1.1/media/upload.json", {
+                    "command": "INIT",
+                    "total_bytes": size,
+                    "media_type": "video/mp4",
+                    "media_category": "tweet_video"
+                }
+            )
+            init_json = init.json()
+            append = session.post(
+                "https://upload.twitter.com/1.1/media/upload.json",
+                data={
+                    "command": "APPEND",
+                    "media_id": init_json["media_id"],
+                    "segment_index": 0
+                },
+                files={
+                    "media": f.read()
+                }
+            )
         finalize = session.post(
             "https://upload.twitter.com/1.1/media/upload.json", {
                 "command": "FINALIZE",
@@ -64,7 +67,8 @@ def upload_files(session: OAuth1Session):
     return ids
 
 app = FastAPI()
-load_dotenv()
+
+load_dotenv(join(ROOT_DIR, '.env'))
 
 api_key = getenv("TWITTER_OAUTH_API_KEY")
 api_secret = getenv("TWITTER_OAUTH_API_SECRET")

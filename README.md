@@ -6,3 +6,6 @@ TWITTER_OAUTH_API_SECRET=(YOUR OAUTH API SECRET)
 OAUTHLIB_INSECURE_TRANSPORT=1
 ```
 Install from `requirements.txt`, then just run `main.py` from the project directory; usage instructions are the same as in `HOW TO.txt`.
+
+To compile with Nuitka:
+`python -m nuitka --onefile --standalone -o musicbot-gen.exe main.py`

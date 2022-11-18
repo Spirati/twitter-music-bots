@@ -4,3 +4,6 @@ out/
 .env
 .vscode/
 temp/
+*.exe
+*build/
+*.dist/
